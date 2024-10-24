@@ -4,30 +4,34 @@ import pandas as pd
 # Set random seed for reproducibility
 np.random.seed(42)
 
-# Generate balanced synthetic data
-current_values = np.random.uniform(0, 10, 1000)
-voltage_values = np.random.uniform(220, 230, 1000)
+# Generate synthetic data with constrained ranges
+current_values = np.random.uniform(0, 10, 500)
+voltage_values = np.random.uniform(220, 230, 500)
+
+# Double the data points to ensure balanced classes
+currents = np.concatenate((current_values, current_values))
+voltages = np.concatenate((voltage_values, voltage_values))
 
 data = {
-    'IR': current_values,
-    'IY': current_values,
-    'IB': current_values,
-    'VR': voltage_values,
-    'VY': voltage_values,
-    'VB': voltage_values
+    'IR': currents,
+    'IY': currents,
+    'IB': currents,
+    'VR': voltages,
+    'VY': voltages,
+    'VB': voltages
 }
 
-# More diverse logic for relays
-data['L1'] = ((current_values > 5) & (voltage_values > 225)).astype(int)
-data['L2'] = ((current_values <= 5) & (voltage_values <= 225)).astype(int)
-data['L3'] = ((current_values > 5) | (voltage_values > 225)).astype(int)
-data['L4'] = ((current_values <= 5) & (voltage_values > 225)).astype(int)
-data['L5'] = ((current_values > 5) & (voltage_values <= 225)).astype(int)
-data['L6'] = ((current_values <= 5) | (voltage_values <= 225)).astype(int)
-data['L7'] = ((current_values > 5) & (voltage_values > 225)).astype(int)
-data['L8'] = ((current_values <= 5) & (voltage_values <= 225)).astype(int)
+# Diverse logic for relays
+data['L1'] = ((currents > 5) & (voltages > 225)).astype(int)
+data['L2'] = ((currents <= 5) & (voltages <= 225)).astype(int)
+data['L3'] = ((currents > 5) | (voltages > 225)).astype(int)
+data['L4'] = ((currents <= 5) & (voltages > 225)).astype(int)
+data['L5'] = ((currents > 5) & (voltages <= 225)).astype(int)
+data['L6'] = ((currents <= 5) | (voltages <= 225)).astype(int)
+data['L7'] = ((currents > 5) & (voltages > 225)).astype(int)
+data['L8'] = ((currents <= 5) & (voltages <= 225)).astype(int)
 
 df = pd.DataFrame(data)
-df.to_csv('diverse_synthetic_data.csv', index=False)
+df.to_csv('high_quality_synthetic_data.csv', index=False)
 
-print("Diverse dataset created and saved as 'diverse_synthetic_data.csv'")
+print("High-quality dataset created and saved as 'high_quality_synthetic_data.csv'")
