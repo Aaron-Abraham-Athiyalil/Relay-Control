@@ -17,17 +17,17 @@ data = {
     'VB': voltage_values
 }
 
-# Ensure an even number of 0s and 1s in relay states
-data['L1'] = (current_values > 5).astype(int)
-data['L2'] = (voltage_values > 225).astype(int)
-data['L3'] = ((current_values > 5) & (voltage_values > 225)).astype(int)
-data['L4'] = ((current_values > 5) | (voltage_values > 225)).astype(int)
-data['L5'] = ((current_values < 5) & (voltage_values < 225)).astype(int)
-data['L6'] = ((current_values < 5) | (voltage_values < 225)).astype(int)
-data['L7'] = ((current_values < 5) & (voltage_values > 225)).astype(int)
-data['L8'] = ((current_values > 5) & (voltage_values < 225)).astype(int)
+# More diverse logic for relays
+data['L1'] = ((current_values > 5) & (voltage_values > 225)).astype(int)
+data['L2'] = ((current_values <= 5) & (voltage_values <= 225)).astype(int)
+data['L3'] = ((current_values > 5) | (voltage_values > 225)).astype(int)
+data['L4'] = ((current_values <= 5) & (voltage_values > 225)).astype(int)
+data['L5'] = ((current_values > 5) & (voltage_values <= 225)).astype(int)
+data['L6'] = ((current_values <= 5) | (voltage_values <= 225)).astype(int)
+data['L7'] = ((current_values > 5) & (voltage_values > 225)).astype(int)
+data['L8'] = ((current_values <= 5) & (voltage_values <= 225)).astype(int)
 
 df = pd.DataFrame(data)
-df.to_csv('balanced_synthetic_data.csv', index=False)
+df.to_csv('diverse_synthetic_data.csv', index=False)
 
-print("Balanced dataset created and saved as 'synthetic_data.csv'")
+print("Diverse dataset created and saved as 'diverse_synthetic_data.csv'")
