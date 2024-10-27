@@ -8,6 +8,11 @@ This is a Python application designed for controlling relay outputs based on pre
 **Registration No:** 2260822  
 **Department of Electrical and Electronics Engineering (EEE)**
 
+
+
+
+
+![UI](image.png)
 ## Features
 - User-friendly interface for inputting current and voltage values.
 - Manual toggling of relays with visual feedback on their status.
