@@ -26,7 +26,7 @@ The Relay Control Application is a user-friendly software tool designed for cont
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/Relay-Control.git
+   git clone https://github.com/Aaron-Abraham-Athiyalil/Relay-Control.git
    cd Relay-Control
    ```
 
