@@ -36,7 +36,7 @@ pip install PyQt5 numpy pandas scikit-learn joblib
    ```
 2. Run the application:
    ```bash
-   python <your_script_name>.py
+   python <testuipqt>.py
    ```
 3. Input the values for IR, IY, IB, VR, VY, and VB in the provided text fields.
 4. Use the "Start" button to begin the prediction process.
@@ -52,27 +52,7 @@ The application includes a dataset generator that creates a synthetic dataset us
 - **Relay Logic**: Eight relay states (`L1` to `L8`) are generated based on complex conditions involving the current, voltage, and power values.
 - **Dataframe Creation**: The data is organized into a pandas DataFrame and shuffled for randomness before being saved as a CSV file.
 
-### Example Code for Dataset Generation:
-```python
-import numpy as np
-import pandas as pd
 
-# Set random seed for reproducibility
-np.random.seed(42)
-
-# Generate synthetic data with more realistic ranges and noise
-current_values = np.random.uniform(0, 10, 500) + np.random.normal(0, 0.1, 500)  # Adding noise to currents
-voltage_values = np.random.uniform(220, 230, 500) + np.random.normal(0, 0.5, 500)  # Adding noise to voltages
-
-# Create additional features (e.g., power)
-power_values = currents * voltages  # Simulating power as V * I
-
-# More complex relay logic with different conditions
-data['L1'] = ((currents > 5) & (voltages > 226) & (power_values > 1200)).astype(int)
-# (And so on for L2 to L8)
-
-# Save to CSV
-df.to_csv('high_quality_synthetic_data_v2.csv', index=False)
 ```
 
 ## License
@@ -80,4 +60,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Acknowledgments
 - Special thanks to the contributors and libraries used in this project.
-- This project was developed as part of the coursework for the Department of Electrical and Electronics Engineering.
+- This project was developed as part of the coursework for the Department of Electrical and Electronics Engineering by Dr.Venkataswamy R.
