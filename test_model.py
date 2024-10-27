@@ -1,32 +1,71 @@
-import numpy as np
-import pandas as pd
 import joblib
-from sklearn.metrics import accuracy_score
+import numpy as np
+import tkinter as tk
+from tkinter import messagebox
 
-# Load the saved multi-output model
-multi_model = joblib.load('multi_output_model.joblib')
+# Function to load the multi-output model and make predictions based on user input
+def test_multi_output_model(IR, IY, IB, VR, VY, VB):
+    # Load the multi-output model
+    model = joblib.load('multi_output_model.joblib')
+    
+    # Prepare input as a 2D array for prediction
+    input_data = np.array([[IR, IY, IB, VR, VY, VB]])
 
-# Load the test dataset 
-test_data = pd.read_csv('high_quality_synthetic_data.csv')  # Ensure this file has similar columns to the training data
-X_test = test_data[['IR', 'IY', 'IB', 'VR', 'VY', 'VB']]
-y_test = test_data[['L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7', 'L8']]
+    # Make predictions for all relays at once
+    predictions = model.predict(input_data)[0]  # Get predictions for each relay
 
-# Make predictions using the loaded model
-preds = multi_model.predict(X_test)# Make predictions using the loaded model
-preds = multi_model.predict(X_test)
+    # Display predictions in a message box
+    prediction_text = "\n".join([f'Prediction for L{i+1}: {predictions[i]}' for i in range(len(predictions))])
+    messagebox.showinfo("Relay Predictions", prediction_text)
 
-# Print only even values for each relay
-for i in range(y_test.shape[1]):
-    even_preds = [pred for pred in preds[:, i] if pred % 2 == 0]  # Filter even values
-    print(f'Even values for L{i+1}: {even_preds}')
+# Function to retrieve input values and call the prediction function
+def predict():
+    try:
+        # Get values from entry fields and convert to floats
+        IR = float(entry_IR.get())
+        IY = float(entry_IY.get())
+        IB = float(entry_IB.get())
+        VR = float(entry_VR.get())
+        VY = float(entry_VY.get())
+        VB = float(entry_VB.get())
+        
+        # Call the prediction function
+        test_multi_output_model(IR, IY, IB, VR, VY, VB)
+    except ValueError:
+        messagebox.showerror("Invalid Input", "Please enter valid numerical values.")
 
-# Calculate accuracy for each relay
-accuracies = []
-for i in range(y_test.shape[1]):
-    accuracy = accuracy_score(y_test.iloc[:, i], preds[:, i])
-    accuracies.append(accuracy)
-    print(f'Accuracy for L{i+1}: {accuracy}')
+# Create a tkinter window
+window = tk.Tk()
+window.title("Relay Model Tester")
 
-# Calculate and print average accuracy across all relays
-average_accuracy = np.mean(accuracies)
-print(f'Average Accuracy on New Test Data: {average_accuracy}')
+# Create and place input fields and labels for each value
+tk.Label(window, text="Enter IR value:").grid(row=0, column=0)
+entry_IR = tk.Entry(window)
+entry_IR.grid(row=0, column=1)
+
+tk.Label(window, text="Enter IY value:").grid(row=1, column=0)
+entry_IY = tk.Entry(window)
+entry_IY.grid(row=1, column=1)
+
+tk.Label(window, text="Enter IB value:").grid(row=2, column=0)
+entry_IB = tk.Entry(window)
+entry_IB.grid(row=2, column=1)
+
+tk.Label(window, text="Enter VR value:").grid(row=3, column=0)
+entry_VR = tk.Entry(window)
+entry_VR.grid(row=3, column=1)
+
+tk.Label(window, text="Enter VY value:").grid(row=4, column=0)
+entry_VY = tk.Entry(window)
+entry_VY.grid(row=4, column=1)
+
+tk.Label(window, text="Enter VB value:").grid(row=5, column=0)
+entry_VB = tk.Entry(window)
+entry_VB.grid(row=5, column=1)
+
+# Create and place a button to trigger the prediction
+predict_button = tk.Button(window, text="Predict", command=predict)
+predict_button.grid(row=6, column=0, columnspan=2)
+
+# Start the tkinter event loop
+window.mainloop()
