@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import (
     QApplication, QWidget, QLabel, QLineEdit, QPushButton,
     QVBoxLayout, QGridLayout, QMessageBox
 )
-from PyQt5.QtCore import Qt, QSize  # Import QSize from QtCore
+from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtGui import QFont, QPalette, QBrush, QLinearGradient, QColor, QIcon
 
 # Load your model
@@ -173,14 +173,16 @@ class RelayControlApp(QWidget):
             self.output_labels[index].setText(f"L{index + 1}: On")
             self.output_labels[index].setStyleSheet("color: green;")  # Change color to green
             self.relay_buttons[index].setText("Turn Off")  # Change button text to "Turn Off"
+            self.relay_buttons[index].setStyleSheet("background-color: #32CD32; color: black;")  # Change button color to green
         else:  # If the relay is currently on
             self.relay_states[index] = 0  # Update the relay state to off
             self.output_labels[index].setText(f"L{index + 1}: Off")
-            self.output_labels[index].setStyleSheet("color: black;")  # Reset text color
-            self.relay_buttons[index].setText("Turn On")  # Change button text to "Turn On"
+            self.output_labels[index].setStyleSheet("color: black;")  # Change color back to black
+            self.relay_buttons[index].setText("Turn On")  # Change button text back to "Turn On"
+            self.relay_buttons[index].setStyleSheet("background-color: #C0C0C0; color: black;")  # Change button color back to default
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app = QApplication(sys.argv)
-    relay_control_app = RelayControlApp()
-    relay_control_app.show()
+    ex = RelayControlApp()
+    ex.show()
     sys.exit(app.exec_())

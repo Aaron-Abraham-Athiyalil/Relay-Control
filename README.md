@@ -13,6 +13,8 @@ This is a Python application designed for controlling relay outputs based on pre
 
 
 ![UI](image.png)
+![Manual Toggle](image-2.png)
+![WORKING](image-1.png)
 ## Features
 - User-friendly interface for inputting current and voltage values.
 - Manual toggling of relays with visual feedback on their status.
