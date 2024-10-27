@@ -1,34 +1,32 @@
+import numpy as np
 import pandas as pd
-import joblib  # Import joblib to load models
+import joblib
+from sklearn.metrics import accuracy_score
 
-# Load the trained models from files
-models = {}
-for i in range(1, 9):
-    models[f'L{i}'] = joblib.load(f'model_L{i}.joblib')  # Load each model
+# Load the saved multi-output model
+multi_model = joblib.load('multi_output_model.joblib')
 
-# Define your custom input data (ensure it has the same features used during training)
-# Example test values: You can modify these as needed.
-custom_input = {
-    'IR': [0],     # Example current input (0A)
-    'IY': [5],     # Example current input (5A)
-    'IB': [10],    # Example current input (10A)
-    'VR': [220],   # Example voltage input (220V)
-    'VY': [225],   # Example voltage input (225V)
-    'VB': [0],     # Example L input (0)
-}
+# Load the test dataset 
+test_data = pd.read_csv('high_quality_synthetic_data.csv')  # Ensure this file has similar columns to the training data
+X_test = test_data[['IR', 'IY', 'IB', 'VR', 'VY', 'VB']]
+y_test = test_data[['L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7', 'L8']]
 
-# Convert the input data into a DataFrame
-input_df = pd.DataFrame(custom_input)
+# Make predictions using the loaded model
+preds = multi_model.predict(X_test)# Make predictions using the loaded model
+preds = multi_model.predict(X_test)
 
-# Initialize a dictionary to store predictions for each relay
-predictions = {}
+# Print only even values for each relay
+for i in range(y_test.shape[1]):
+    even_preds = [pred for pred in preds[:, i] if pred % 2 == 0]  # Filter even values
+    print(f'Even values for L{i+1}: {even_preds}')
 
-# Make predictions for each relay using the loaded models
-for i in range(1, 9):
-    # Predict the value for relay L{i}
-    pred = models[f'L{i}'].predict(input_df)
-    predictions[f'L{i}'] = pred[0]  # Store the prediction for relay L{i}
+# Calculate accuracy for each relay
+accuracies = []
+for i in range(y_test.shape[1]):
+    accuracy = accuracy_score(y_test.iloc[:, i], preds[:, i])
+    accuracies.append(accuracy)
+    print(f'Accuracy for L{i+1}: {accuracy}')
 
-# Print the predicted values for each relay
-for i in range(1, 9):
-    print(f'Predicted value for L{i}: {predictions[f"L{i}"]}')
+# Calculate and print average accuracy across all relays
+average_accuracy = np.mean(accuracies)
+print(f'Average Accuracy on New Test Data: {average_accuracy}')
