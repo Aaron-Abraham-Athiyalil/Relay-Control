@@ -1,68 +1,79 @@
 import numpy as np
-from sklearn.model_selection import train_test_split
-from keras.models import Sequential
-from keras.layers import LSTM, Dense
-from keras.callbacks import EarlyStopping, ReduceLROnPlateau, ModelCheckpoint
-from keras_tuner import RandomSearch
+import pandas as pd
 import tensorflow as tf
-import sys
-sys.stdout.reconfigure(encoding='utf-8')
-# Ensure TensorFlow is using optimal CPU instructions if possible
-print(f"TensorFlow version: {tf.__version__}")
+from tensorflow.keras.models import Model, Sequential
+from tensorflow.keras.layers import Input, Dense, LayerNormalization, Dropout, MultiHeadAttention, Add
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
+from sklearn.preprocessing import MinMaxScaler
 
-# Load your data (replace this with actual data loading code)
-# Assume 'data' is your features and 'labels' is your target variable
-# For now, let's use dummy data for illustration
-data = np.random.rand(1000, 10)  # 1000 samples, 10 features
-labels = np.random.randint(2, size=1000)  # Binary classification
+# Custom Transformer Block
+class TransformerBlock(tf.keras.layers.Layer):
+    def __init__(self, embed_dim, num_heads, ff_dim, rate=0.1):
+        super(TransformerBlock, self).__init__()
+        self.att = MultiHeadAttention(num_heads=num_heads, key_dim=embed_dim)
+        self.ffn = Sequential([
+            Dense(ff_dim, activation="relu"), 
+            Dense(embed_dim),
+        ])
+        self.layernorm1 = LayerNormalization(epsilon=1e-6)
+        self.layernorm2 = LayerNormalization(epsilon=1e-6)
+        self.dropout1 = Dropout(rate)
+        self.dropout2 = Dropout(rate)
+    
+    def call(self, inputs, training):
+        attn_output = self.att(inputs, inputs)
+        attn_output = self.dropout1(attn_output, training=training)
+        out1 = self.layernorm1(inputs + attn_output)
+        ffn_output = self.ffn(out1)
+        ffn_output = self.dropout2(ffn_output, training=training)
+        return self.layernorm2(out1 + ffn_output)
 
-# Split data into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(data, labels, test_size=0.2, random_state=42)
+# Load and preprocess the data
+data = pd.read_csv('high_quality_synthetic_data.csv')
+scaler = MinMaxScaler()
+scaled_data = scaler.fit_transform(data)
 
-# Verify the shape of the data
-print(f"X_train shape: {X_train.shape}, y_train shape: {y_train.shape}")
-print(f"X_test shape: {X_test.shape}, y_test shape: {y_test.shape}")
+time_steps = 10
+X = []
+y = []
 
-# Define a simple LSTM model for tuning
-def build_model(hp):
-    model = Sequential()
-    model.add(LSTM(units=hp.Int('units', min_value=32, max_value=512, step=32), 
-                   input_shape=(X_train.shape[1], 1)))  # Assuming X_train has shape (samples, timesteps, features)
-    model.add(Dense(1, activation='sigmoid'))  # For binary classification
+# Prepare the dataset for time series prediction
+for i in range(time_steps, len(scaled_data)):
+    X.append(scaled_data[i-time_steps:i, :-8])
+    y.append(scaled_data[i, -8:])
 
-    # Compile the model
-    model.compile(optimizer='adam',
-                  loss='binary_crossentropy',
-                  metrics=['accuracy'])
-    return model
+X, y = np.array(X), np.array(y)
 
-# Reshape data if necessary (LSTM expects 3D input: samples, timesteps, features)
-X_train = np.reshape(X_train, (X_train.shape[0], X_train.shape[1], 1))
-X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1], 1))
+# Define input shape based on the processed data
+input_shape = X.shape[1:]
 
-# Set up early stopping and learning rate reduction
-early_stopping = EarlyStopping(monitor='val_loss', patience=10, verbose=1, restore_best_weights=True)
-reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=5, verbose=1)
+# Build the model
+inputs = Input(shape=input_shape)
+transformer_block = TransformerBlock(embed_dim=64, num_heads=4, ff_dim=128)
+x = transformer_block(inputs)
+x = Dense(64, activation='relu')(x)
+x = Dropout(0.3)(x)
+x = Dense(32, activation='relu')(x)
+x = Dropout(0.3)(x)
+outputs = Dense(8, activation='sigmoid')(x)
 
-# Save the best model during training
-model_checkpoint = ModelCheckpoint('best_model.keras', save_best_only=True, monitor='val_accuracy', verbose=1)
+model = Model(inputs=inputs, outputs=outputs)
 
-# Initialize Keras Tuner with Random Search
-tuner = RandomSearch(
-    build_model,
-    objective='val_accuracy',
-    max_trials=5,
-    executions_per_trial=3,
-    directory='tuner_results',
-    project_name='lstm_tuning'
+# Compile the model
+optimizer = Adam(learning_rate=0.0005)
+model.compile(optimizer=optimizer, loss='binary_crossentropy', metrics=['accuracy'])
+
+# Callbacks for early stopping, model checkpoint, and learning rate reduction
+early_stopping = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
+model_checkpoint = ModelCheckpoint('transformer_model.keras', save_best_only=True)
+reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=5, min_lr=0.0001)
+
+# Train the model with more epochs and a larger batch size
+history = model.fit(
+    X, y, 
+    epochs=100, 
+    batch_size=64, 
+    validation_split=0.2, 
+    callbacks=[early_stopping, model_checkpoint, reduce_lr]
 )
-
-# Begin search for the best hyperparameters
-tuner.search(X_train, y_train, epochs=500, validation_split=0.2, callbacks=[early_stopping, model_checkpoint, reduce_lr])
-
-# Retrieve the best model
-best_model = tuner.get_best_models(num_models=1)[0]
-
-# Evaluate the best model on the test set
-test_loss, test_acc = best_model.evaluate(X_test, y_test)
-print(f"Test accuracy: {test_acc}")
