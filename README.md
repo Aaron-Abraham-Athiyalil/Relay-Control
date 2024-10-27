@@ -52,6 +52,9 @@ The application includes a dataset generator that creates a synthetic dataset us
 - **Relay Logic**: Eight relay states (`L1` to `L8`) are generated based on complex conditions involving the current, voltage, and power values.
 - **Dataframe Creation**: The data is organized into a pandas DataFrame and shuffled for randomness before being saved as a CSV file.
 
+
+## Model
+The machine learning model used for predictions is implemented in main2.py. It utilizes XGBoost, a powerful library that provides an efficient and flexible implementation of gradient boosting, to predict the states of the relays based on the input features.
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
